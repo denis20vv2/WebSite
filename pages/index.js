@@ -1,18 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import Head from 'next/head';
-import Image from 'next/image';
+import React from 'react'
+import Head from 'next/head'
 import AwesomeSlider from "react-awesome-slider";
 import "react-awesome-slider/dist/styles.css";
 import "react-awesome-slider/dist/captioned.css";
-import styles from '../styles/Home.module.css';
-
-const buttonStyle = {
-    padding: "15px",
-    borderRadius: "50%",
-    background: "red",
-    opacity: 0.7,
-    fontSize: "20px"
-};
+import styles from '../styles/Home.module.css'
 
 const headerStyle = {
     color:'white',
@@ -20,7 +11,7 @@ const headerStyle = {
     zIndex:4,
     top:'30%',
     left:'40%'
-};
+}
 
 const contentStyle = {
     color:'white',
@@ -29,7 +20,7 @@ const contentStyle = {
     left:'25%',
     position:"absolute",
     zIndex:4
-};
+}
 
 const bgImg = {
     position: "fixed",
@@ -46,7 +37,7 @@ function sendEmail(email){
 }
 
 function Animal(props){
-    if(!props.data) return <p>Loading</p>;
+    if(!props.data) return <p>Loading</p>
     const {header,content,img} = props.data;
     return (
         <div>
@@ -62,47 +53,28 @@ function Animal(props){
 }
 
 export default function Home() {
-    const [animals, setAnimals] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await fetch('/api/getAnimals'); // Получение данных из API маршрута
-                if (!response.ok) {
-                    throw new Error('Ошибка загрузки данных');
-                }
-                const data = await response.json(); // Преобразование ответа в JSON формат
-                if (Array.isArray(data) && data.length === 0) {
-                    throw new Error('JSON пуст');
-                }
-                setAnimals(data); // Обновление состояния animals
-            } catch (error) {
-                console.error('Ошибка загрузки данных:', error);
-                setError(error.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
-    }, []);
-
-    useEffect(() => {
-        let user = localStorage.getItem('user');
-        if (user === null) {
-            while (user === null) {
-                user = prompt("Введите ваше имя пользователя");
-                if (!user) {
-                    alert('Обязательно!');
-                } else {
-                    localStorage.setItem('user', user);
+    const [animals,setAnimals] = React.useState([]);
+    React.useEffect(()=>{
+        fetch('/public/animals.json').then(data=>data.json()).then(data=>setAnimals(data));
+    },[]);
+    React.useEffect(()=>{
+        if (typeof window !== 'undefined') {
+            let user = localStorage.getItem('user');
+            if (user===null){
+                while (user===null){
+                    user=prompt("Введите ваше имя пользователя");
+                    if (!user){
+                        alert('Обязательно!');
+                    }
+                    else {
+                        localStorage.setItem('user',user);
+                    }
                 }
             }
         }
-    }, []);
+    },[]);
 
-    function logout() {
+    function logout(){
         localStorage.clear();
         location.reload();
     }
@@ -115,27 +87,22 @@ export default function Home() {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
 
+
             <main className={styles.main}>
                 <button onClick={logout}>logout</button>
                 <h1>Petto</h1>
-                {loading ? (
-                    <p>Loading...</p>
-                ) : error ? (
-                    <p>{error}</p>
-                ) : (
-                    <AwesomeSlider style={{ "--slider-height-percentage": "100%" }}>
-                        {animals.map((data, i) => (
-                            <div key={i} style={{ zIndex: 2 }} onClick={() => sendEmail(data?.email)}>
-                                <Animal data={data} />
-                            </div>
-                        ))}
-                    </AwesomeSlider>
-                )}
+                <AwesomeSlider style={{ "--slider-height-percentage": "100%" }}>
+                    {
+                        animals.map((data,i)=><div key={i} style={{ zIndex: 2 }} onClick={()=>sendEmail(data?.email)}>
+                            <Animal data={data} />
+                        </div>)
+                    }
+                </AwesomeSlider>
             </main>
 
             <footer className={styles.footer}>
                 Petto, (c) 2022
             </footer>
         </div>
-    );
+    )
 }
